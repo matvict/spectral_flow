@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Flow Spectral Embedding Demo</title>
+    <script src="files.js"></script>
+     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    
+
+    <script>
+    $(function() {
+      $( document ).tooltip();
+    });
+    </script>
+  
+    
+
+    <script>
+    var flow_name = "drain"
+    var emb_count = 8
+
+    function html_flows() { return $("#flows"); }
+    function html_emb() { return $("#emb"); }
+    function html_steps() { return $("#steps"); }
+    function html_size() { return $("#size"); }
+
+    function filter_results()
+    {
+        
+        name = html_flows().val();
+        count = html_emb().val();
+        size = html_size().val();
+        steps = html_steps().val();
+
+
+
+        //$("#debug").append(count)
+        arr = $.grep(files, function( n, i ) {
+            return (
+                n.flow_alias == name && 
+                n.slice < count &&
+                (n.number_of_steps == steps  || !$("#cb_steps:checked").val() ) &&
+                (n.size == size || !$("#cb_size:checked").val())
+            );
+        });
+
+
+        $("#images").html("")
+        $.each(arr, function(i, v) {
+            var spa = $('<span >'); //Equivalent: $(document.createElement('img'))
+            var img = $('<img id="dynamic">'); //Equivalent: $(document.createElement('img'))
+            file ="";
+            if ($("#cb_lic:checked").val()) {
+                file = v.emb_file_lic;
+               // $("#debug").append("!checked!");
+            }
+            else{ file = v.emb_file; }
+            img.attr('src', file);
+            str = 
+            "size: " + v.size + 
+            "; steps: " + v.number_of_steps +              
+            "; slice: " + v.slice;
+
+
+            img.attr('title', str);
+            //spa.text(v.emb_file);
+            img.appendTo('#images');
+          
+        });
+
+    }
+
+    function append_option(tag, v)
+    {
+        tag.append('<option value="' + v+'">'+v+'</option>');
+    }
+    function func_append_option(tag)
+    {
+        return function(i, v) { append_option(tag, v); }
+    }
+
+    $(function() {
+
+        var emb_counts = []
+        for (var i=1; i<=16; i++)
+        {
+            emb_counts.push(i);
+        }        
+        $.each(emb_counts, func_append_option(html_emb()));
+        
+        $.each(flows, func_append_option(html_flows()));
+        
+        $.each([100, 200, 400, 40, 80], 
+            func_append_option(html_steps()));
+
+        $.each([1024, 512, 256], 
+            func_append_option(html_size()));
+
+
+        // on chnage
+        $.each([html_steps(), html_emb(), html_flows(), html_size(), 
+            $("#cb_size") ,
+            $("#cb_steps"),
+            $("#cb_lic"),
+            ], 
+            function(i, v){ v.on('change', filter_results);}
+        );
+        $('#cb_lic').prop('checked', true);
+        filter_results();
+
+    });
+
+    </script>
+</head>
+<body>
+
+
+<h1> Flow Spectral Embeddings Demo </h1>
+<span id="debug"></span>
+<span> flow  </span><select id="flows"></select>
+<br/>
+
+<span> integration length (use checkbox to enable/disable filter) 
+</span><input type="checkbox" id="cb_steps"/>  <select id="steps"></select>
+<br/> 
+<span> output resolution (use checkbox to enable/disable filter)</span>
+<input type="checkbox" id="cb_size"/> <select id="size"></select>
+ <br/>    
+<span> number of eigenvectors</span> <select id="emb"></select>
+<br/>
+<span> use lic overlay </span>
+<input type="checkbox" id="cb_lic" />  </input>
+
+<br/> 
+
+<!-- <input type="button" text="select images"></input> -->
+<div id="images"></div>
+
+
+</body>
+</html>
